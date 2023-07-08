@@ -4,6 +4,11 @@
 mod healthDot {
     use ink::storage::Mapping;
 
+    use scale::{
+        Decode,
+        Encode,
+    };
+
     pub type TokenId = u64;
     pub type Approved = bool;
 
@@ -15,6 +20,16 @@ mod healthDot {
         token_symbol: String,
         token_owner: Mapping<TokenId, AccountId>,
         token_approvals: Mapping<TokenId, AccountId>,
+    }
+
+    #[derive(Encode, Decode, Debug, PartialEq, Eq, Copy, Clone)]
+    #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
+    pub enum Error {
+        NotOwner,
+        NotApproved,
+        TokenExists,
+        TokenNotFound,
+        NotAllowed,
     }
 
     /// @dev This emits when ownership of any NFT changes by any mechanism.
@@ -72,9 +87,37 @@ mod healthDot {
         /// @param TokenId The identifier for an NFT
         /// @return The address of the owner of the NFT
         #[ink(message)]
-        pub fn owner_of(&self, id: TokenId) -> Option<AccountId> {
-            self.token_owner.get(id)
+        pub fn owner_of(&self, token_id: TokenId) -> Option<AccountId> {
+            self.token_owner.get(token_id)
         }
+
+        #[ink(message)]
+        pub fn approve(&mut self, address: AccountId, token_id: TokenId) -> Result<(), Error> {
+            self.approve_for(&address, token_id)?;
+            Ok(())
+        }
+
+        #[ink(message)]
+        pub fn get_approved(&self, token_id: TokenId) -> Option<AccountId> {
+            self.token_approvals.get(token_id)
+        }
+
+        ////////////////////////////////
+        ////// Internal Functions///////
+        ////////////////////////////////
+        fn approve_for(&self, address: &AccountId, token_id: TokenId) -> Result<(), Error> {
+            let msg_sender: AccountId = self.env().caller();
+            let owner: Option<AccountId> = self.owner_of(token_id);
+
+            if !(owner == Some(msg_sender)) {
+                return Err(Error::NotAllowed)
+            };
+
+
+            Ok(())
+
+        }
+
 
         ////////////////////////////////
         ////// Metadata Extension///////
