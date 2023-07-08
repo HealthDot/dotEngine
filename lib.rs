@@ -66,9 +66,30 @@ mod healthDot {
             }
         }
 
+        /// @notice Find the owner of an NFT
+        /// @dev NFTs assigned to zero address are considered invalid, and queries
+        ///  about them do throw.
+        /// @param TokenId The identifier for an NFT
+        /// @return The address of the owner of the NFT
         #[ink(message)]
         pub fn owner_of(&self, id: TokenId) -> Option<AccountId> {
             self.token_owner.get(id)
         }
+
+        ////////////////////////////////
+        ////// Metadata Extension///////
+        ////////////////////////////////
+        
+        #[ink(message)]
+        pub fn name(&self) -> String {
+            self.token_name.clone()
+        }
+
+        #[ink(message)]
+        pub fn symbol(&self) -> String {
+            self.token_symbol.clone()
+        }
+
+
     }
 }
