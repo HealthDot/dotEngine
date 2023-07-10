@@ -2,8 +2,10 @@
 
 #[ink::contract]
 mod healthDot {
-    use ink::storage::Mapping;
 
+    use ink::{storage::Mapping, primitives::AccountId};
+
+    // use ink_e2e::subxt::error::DecodeError;
     use scale::{
         Decode,
         Encode,
@@ -20,6 +22,7 @@ mod healthDot {
         token_symbol: String,
         token_owner: Mapping<TokenId, AccountId>,
         token_approvals: Mapping<TokenId, AccountId>,
+        owned_tokens_count: Mapping<AccountId, u32>
     }
 
     #[derive(Encode, Decode, Debug, PartialEq, Eq, Copy, Clone)]
@@ -51,9 +54,9 @@ mod healthDot {
     #[ink(event)]
     pub struct Approval {
         #[ink(topic)]
-        owner: Option<AccountId>,
+        owner: AccountId,
         #[ink(topic)]
-        spender: Option<AccountId>,
+        spender: AccountId,
         #[ink(topic)]
         token_id: TokenId
     }
@@ -63,9 +66,9 @@ mod healthDot {
     #[ink(event)]
     pub struct ApprovalForAll {
         #[ink(topic)]
-        owner: Option<AccountId>,
+        owner: AccountId,
         #[ink(topic)]
-        operator: Option<AccountId>,
+        operator: AccountId,
         #[ink(topic)]
         approved: Approved
     }
@@ -102,16 +105,101 @@ mod healthDot {
             self.token_approvals.get(token_id)
         }
 
+        #[ink(message)]
+        pub fn transfer_from(&mut self, from: AccountId, to: AccountId, id: TokenId) -> Result<(), Error> {
+            self.transfer_token_from(&from, &to, id);
+            Ok(())
+        }
+
+        #[ink(message)]
+        pub fn mint(&mut self, id: TokenId) -> Result<(), Error> {
+            let msg_sender: AccountId = self.env().caller();
+            
+            self.add_token_to(&msg_sender, id)?;
+            self.env().emit_event(Transfer {
+                from: Some(AccountId::from([0x0, 32])),
+                to: msg_sender,
+                id
+            });
+            Ok(())
+        }
+
         ////////////////////////////////
         ////// Internal Functions///////
         ////////////////////////////////
-        fn approve_for(&self, address: &AccountId, token_id: TokenId) -> Result<(), Error> {
+
+        
+        fn add_token_to(&mut self, to: &AccountId, id: TokenId) -> Result<(), Error> {
+            let Self {
+                token_owner,
+                owned_tokens_count,
+                ..
+            } = self;
+
+            if token_owner.contains(id) {
+                return Err(Error::TokenExists)
+            };
+
+            if *to == AccountId::from([0x0; 32]) {
+                return Err(Error::NotAllowed)
+            }
+
+            owned_tokens_count
+
+            Ok(())
+
+        }
+        
+        fn transfer_token_from(&mut self, from: AccountId, to: AccountId, id: TokenId) -> Result<(), Error> {
+            let msg_sender: AccountId = self.env().caller();
+            
+            if !self.exists(id) {
+                return Err(Error::TokenNotFound)
+            };
+
+            self.remove_from(from, id)?;
+            self.add_to(to, id)?;
+
+            self.env().emit_event(Transfer {
+                from: Some(*from),
+                to: Some(*to),
+                id
+            });
+
+            Ok(())
+        }
+
+        fn remove_from(&self, from: AccountId, id: TokenId) -> Result<(), Error> {
+
+        }
+
+        fn exists(&self, id: TokenId) -> bool {
+            self.token_owner.contains(id)
+        }
+
+        fn approve_for(&mut self, address: &AccountId, token_id: TokenId) -> Result<(), Error> {
             let msg_sender: AccountId = self.env().caller();
             let owner: Option<AccountId> = self.owner_of(token_id);
 
             if !(owner == Some(msg_sender)) {
                 return Err(Error::NotAllowed)
             };
+
+            if *address == AccountId::from([0x0; 32]) {
+                return Err(Error::NotAllowed)
+            }
+
+            if self.token_approvals.contains(token_id) {
+                return Err(Error::NotAllowed)
+            } else {
+                self.token_approvals.insert(token_id, address);
+            }
+
+            self.env().emit_event(Approval {
+                owner: msg_sender,
+                spender: *address,
+                token_id
+            });
 
 
             Ok(())
