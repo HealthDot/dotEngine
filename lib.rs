@@ -3,15 +3,14 @@
 #[ink::contract]
 mod healthDot {
 
-    use ink::{storage::Mapping, primitives::AccountId};
+    use ink::storage::Mapping;
 
-    // use ink_e2e::subxt::error::DecodeError;
     use scale::{
         Decode,
         Encode,
     };
 
-    pub type TokenId = u64;
+    pub type TokenId = u32;
     pub type Approved = bool;
 
     #[ink(storage)]
@@ -33,6 +32,7 @@ mod healthDot {
         TokenExists,
         TokenNotFound,
         NotAllowed,
+        CannotFetchValue
     }
 
     /// @dev This emits when ownership of any NFT changes by any mechanism.
@@ -81,6 +81,7 @@ mod healthDot {
                 token_symbol,
                 token_owner: Default::default(),
                 token_approvals: Default::default(),
+                owned_tokens_count: Default::default()
             }
         }
 
@@ -117,9 +118,9 @@ mod healthDot {
             
             self.add_token_to(&msg_sender, id)?;
             self.env().emit_event(Transfer {
-                from: Some(AccountId::from([0x0, 32])),
-                to: msg_sender,
-                id
+                from: Some(AccountId::from([0x0; 32])),
+                to: Some(msg_sender),
+                token_id: id
             });
             Ok(())
         }
@@ -144,33 +145,55 @@ mod healthDot {
                 return Err(Error::NotAllowed)
             }
 
-            owned_tokens_count
+            let count = owned_tokens_count.get(to).map(|c| c + 1 ).unwrap_or(1);
+            
+            owned_tokens_count.insert(to, &count);
+            token_owner.insert(id, to);
 
             Ok(())
 
         }
         
-        fn transfer_token_from(&mut self, from: AccountId, to: AccountId, id: TokenId) -> Result<(), Error> {
+        fn transfer_token_from(&mut self, from: &AccountId, to: &AccountId, id: TokenId) -> Result<(), Error> {
             let msg_sender: AccountId = self.env().caller();
             
             if !self.exists(id) {
                 return Err(Error::TokenNotFound)
             };
 
-            self.remove_from(from, id)?;
-            self.add_to(to, id)?;
+            self.remove_token_from(from, id)?;
+            self.add_token_to(to, id)?;
 
             self.env().emit_event(Transfer {
                 from: Some(*from),
                 to: Some(*to),
-                id
+                token_id: id
             });
 
             Ok(())
         }
 
-        fn remove_from(&self, from: AccountId, id: TokenId) -> Result<(), Error> {
+        fn remove_token_from(&mut self, from: &AccountId, id: TokenId) -> Result<(), Error> {
+            let Self {
+                token_owner,
+                owned_tokens_count,
+                ..
+            } = self;
 
+            if token_owner.contains(id) {
+                return Err(Error::TokenExists)
+            };
+
+            if *from == AccountId::from([0x0; 32]) {
+                return Err(Error::NotAllowed)
+            }
+
+            let count = owned_tokens_count.get(from).map(|c| c - 1).ok_or(Error::CannotFetchValue)?;
+            
+            owned_tokens_count.insert(from, &count);
+            token_owner.remove(id);
+
+            Ok(())
         }
 
         fn exists(&self, id: TokenId) -> bool {
