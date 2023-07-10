@@ -1,0 +1,10 @@
+{
+    "private": true,
+    "name": "@healthdot/monorepo",
+    "workspaces": [
+        "packages/contracts"
+    ],
+    "scripts": {
+        "compile:contract": "yarn workspace @healthdot/contracts run compile"
+    }
+}
