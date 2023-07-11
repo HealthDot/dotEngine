@@ -17,6 +17,6 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build
-      run: cargo build --verbose
+      run: yarn build:contract
     - name: Run tests
-      run: cargo test --verbose
+      run: yarn test:contract

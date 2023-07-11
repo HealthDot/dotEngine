@@ -5,6 +5,8 @@
   "license": "MIT",
 
   "scripts": {
-    "compile": "cargo check"
+    "compile": "cargo check",
+    "build": "cargo build --verbose",
+    "test": "cargo test --verbose"
   }
 }

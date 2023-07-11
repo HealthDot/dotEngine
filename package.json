@@ -5,6 +5,8 @@
         "packages/contracts"
     ],
     "scripts": {
-        "compile:contract": "yarn workspace @healthdot/contracts run compile"
+        "check:contract": "yarn workspace @healthdot/contracts run compile",
+        "build:contract": "yarn workspace @healthdot/contracts run build",
+        "test:contract": "yarn workspace @healthdot/contracts run test"
     }
 }
