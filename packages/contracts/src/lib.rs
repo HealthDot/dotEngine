@@ -2,7 +2,6 @@
 
 #[ink::contract]
 mod healthDot {
-
     use ink::storage::Mapping;
 
     use scale::{
@@ -19,6 +18,7 @@ mod healthDot {
         // Mapping from token ID to owner address
         token_name: String,
         token_symbol: String,
+        token_resource_locator: Mapping<TokenId, String>,
         token_owner: Mapping<TokenId, AccountId>,
         token_approvals: Mapping<TokenId, AccountId>,
         owned_tokens_count: Mapping<AccountId, u32>
@@ -79,6 +79,7 @@ mod healthDot {
             Self {
                 token_name,
                 token_symbol,
+                token_resource_locator: Default::default(),
                 token_owner: Default::default(),
                 token_approvals: Default::default(),
                 owned_tokens_count: Default::default()
@@ -242,6 +243,23 @@ mod healthDot {
         #[ink(message)]
         pub fn symbol(&self) -> String {
             self.token_symbol.clone()
+        }
+
+        #[ink(message)]
+        pub fn token_uri(&self, id: TokenId) -> Option<String> {
+            self.token_resource_locator.get(id)
+        }
+
+        #[ink(message)]
+        pub fn set_token_uri(&mut self, id: TokenId, uri: String) -> Result<(), Error> {
+            let Self {
+                token_resource_locator,
+                ..
+            } = self;
+
+            token_resource_locator.insert(id, &uri);
+
+            Ok(())
         }
 
 
