@@ -1,7 +1,7 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 #[ink::contract]
-pub mod patient_dot {
+pub mod patient {
     use ink::storage::Mapping;
 
     use scale::{
@@ -14,7 +14,7 @@ pub mod patient_dot {
 
     #[ink(storage)]
     #[derive(Default)]
-    pub struct patient_dot {
+    pub struct Patient {
         // Mapping from token ID to owner address
         token_name: String,
         token_symbol: String,
@@ -73,7 +73,7 @@ pub mod patient_dot {
         approved: Approved
     }
 
-    impl patient_dot {
+    impl Patient {
         #[ink(constructor)]
         pub fn new(token_name: String, token_symbol: String) -> Self {
             Self {
@@ -85,6 +85,16 @@ pub mod patient_dot {
                 owned_tokens_count: Default::default()
             }
         }
+
+        /// Returns the balance of the owner.
+        ///
+        /// This represents the amount of unique tokens the owner has.
+        #[ink(message)]
+        pub fn balance_of(&self, owner: AccountId) -> u32 {
+            self.balance_of_or_zero(&owner)
+        }
+
+        
 
         /// @notice Find the owner of an NFT
         /// @dev NFTs assigned to zero address are considered invalid, and queries
@@ -131,6 +141,10 @@ pub mod patient_dot {
         ////////////////////////////////
 
         
+        fn balance_of_or_zero(&self, of: &AccountId) -> u32 {
+            self.owned_tokens_count.get(of).unwrap_or(0)
+        }
+
         fn add_token_to(&mut self, to: &AccountId, id: TokenId) -> Result<(), Error> {
             let Self {
                 token_owner,
@@ -262,6 +276,48 @@ pub mod patient_dot {
             Ok(())
         }
 
+    }
+
+    /// Unit tests
+    #[cfg(test)]
+    mod tests {
+        /// Imports all the definitions from the outer scope so we can use them here.
+        use super::*;
+
+        #[ink::test]
+        fn mint_works() {
+            let accounts =
+                ink::env::test::default_accounts::<ink::env::DefaultEnvironment>();
+            // Create a new contract instance.
+            let mut patient = Patient::new(String::from("HealthDot"), String::from("HDOT"));
+            // Token 1 does not exists.
+            assert_eq!(patient.owner_of(1), None);
+            // Alice does not owns tokens.
+            assert_eq!(patient.balance_of(accounts.alice), 0);
+            // Create token Id 1.
+            assert_eq!(patient.mint(1), Ok(()));
+            // Alice owns 1 token.
+            assert_eq!(patient.balance_of(accounts.alice), 1);
+        }
+
+        #[ink::test]
+        fn mint_existing_should_fail() {
+            let accounts =
+                ink::env::test::default_accounts::<ink::env::DefaultEnvironment>();
+            // Create a new contract instance.
+            let mut patient = Patient::new(String::from("HealthDot"), String::from("HDOT"));
+            // Create token Id 1.
+            assert_eq!(patient.mint(1), Ok(()));
+            // The first Transfer event takes place
+            assert_eq!(1, ink::env::test::recorded_events().count());
+            // Alice owns 1 token.
+            assert_eq!(patient.balance_of(accounts.alice), 1);
+            // Alice owns token Id 1.
+            assert_eq!(patient.owner_of(1), Some(accounts.alice));
+            // Cannot create  token Id if it exists.
+            // Bob cannot own token Id 1.
+            assert_eq!(patient.mint(1), Err(Error::TokenExists));
+        }
 
     }
 }
