@@ -118,8 +118,15 @@ pub mod patient {
         }
 
         #[ink(message)]
+        pub fn transfer(&mut self, to: AccountId, id: TokenId) -> Result<(), Error> {
+            let caller = self.env().caller();
+            self.transfer_token_from(&caller, &to, id)?;
+            Ok(())
+        }
+
+        #[ink(message)]
         pub fn transfer_from(&mut self, from: AccountId, to: AccountId, id: TokenId) -> Result<(), Error> {
-            self.transfer_token_from(&from, &to, id);
+            self.transfer_token_from(&from, &to, id)?;
             Ok(())
         }
 
@@ -195,13 +202,9 @@ pub mod patient {
                 ..
             } = self;
 
-            if token_owner.contains(id) {
-                return Err(Error::TokenExists)
+            if !token_owner.contains(id) {
+                return Err(Error::TokenNotFound)
             };
-
-            if *from == AccountId::from([0x0; 32]) {
-                return Err(Error::NotAllowed)
-            }
 
             let count = owned_tokens_count.get(from).map(|c| c - 1).ok_or(Error::CannotFetchValue)?;
             
@@ -317,6 +320,52 @@ pub mod patient {
             // Cannot create  token Id if it exists.
             // Bob cannot own token Id 1.
             assert_eq!(patient.mint(1), Err(Error::TokenExists));
+        }
+
+        #[ink::test]
+        fn transfer_works() {
+            let accounts =
+                ink::env::test::default_accounts::<ink::env::DefaultEnvironment>();
+            // Create a new contract instance.
+            let mut patient = Patient::new(String::from("HealthDot"), String::from("HDOT"));
+            // Create token Id 1 for Alice
+            assert_eq!(patient.mint(1), Ok(()));
+            // Alice owns token 1
+            assert_eq!(patient.balance_of(accounts.alice), 1);
+            // Bob does not owns any token
+            assert_eq!(patient.balance_of(accounts.bob), 0);
+            // The first Transfer event takes place
+            assert_eq!(1, ink::env::test::recorded_events().count());
+            // Alice transfers token 1 to Bob
+            assert_eq!(patient.transfer(accounts.bob, 1), Ok(()));
+            // The second Transfer event takes place
+            assert_eq!(2, ink::env::test::recorded_events().count());
+            // Bob owns token 1
+            assert_eq!(patient.balance_of(accounts.bob), 1);
+        }
+
+        #[ink::test]
+        fn invalid_transfer_should_fail() {
+            let accounts =
+                ink::env::test::default_accounts::<ink::env::DefaultEnvironment>();
+            // Create a new contract instance.
+            let mut patient = Patient::new(String::from("HealthDot"), String::from("HDOT"));
+            // Transfer token fails if it does not exists.
+            assert_eq!(patient.transfer(accounts.bob, 2), Err(Error::TokenNotFound));
+            // Token Id 2 does not exists.
+            assert_eq!(patient.owner_of(2), None);
+            // Create token Id 2.
+            assert_eq!(patient.mint(2), Ok(()));
+            // Alice owns 1 token.
+            assert_eq!(patient.balance_of(accounts.alice), 1);
+            // Token Id 2 is owned by Alice.
+            assert_eq!(patient.owner_of(2), Some(accounts.alice));
+            // Set Bob as caller
+            set_caller(accounts.bob);
+        }
+
+        fn set_caller(sender: AccountId) {
+            ink::env::test::set_caller::<ink::env::DefaultEnvironment>(sender);
         }
 
     }
