@@ -1,3 +1,6 @@
+[![Netlify Status](https://api.netlify.com/api/v1/badges/2796cdd5-c0ef-4c5f-b181-8f574741ba26/deploy-status)](https://app.netlify.com/sites/lucent-alfajores-62914d/deploys)
+
+
 #   HealthDOT Initiative: A Patient-Centric, Decentralized Health Data Management System Using Dynamic NFTs
 
 ### Abstract: 

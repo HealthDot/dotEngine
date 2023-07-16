@@ -2,34 +2,11 @@
 
 #[ink::contract]
 pub mod epr {
-    // use ink::storage::Mapping;
-    use ink::prelude::string::String;
-    use ink::prelude::vec::Vec;
-    // use ink::env;
-
-    use ink::storage::{
-        traits::ManualKey,
-        Mapping,
-    };
-
-    use scale::{
-        Decode,
-        Encode,
-    };
+    use ink::storage::Mapping;
+    use ink::env;
 
     pub type HealthId = u32;
 
-    #[derive(Default, scale::Decode, scale::Encode)]
-    #[cfg_attr(
-        feature = "std",
-        derive(
-            Debug,
-            PartialEq,
-            Eq,
-            scale_info::TypeInfo,
-            ink::storage::traits::StorageLayout
-        )
-    )]
     pub struct Biodata {
         name: String,
         details: String, //Hash
@@ -37,17 +14,6 @@ pub mod epr {
         vector: Vec<u8>,
     }
 
-    #[derive(Default, scale::Decode, scale::Encode)]
-    #[cfg_attr(
-        feature = "std",
-        derive(
-            Debug,
-            PartialEq,
-            Eq,
-            scale_info::TypeInfo,
-            ink::storage::traits::StorageLayout
-        )
-    )]
     pub struct ClinicalNotes {
         name: String,
         details: String, //Hash
@@ -56,14 +22,13 @@ pub mod epr {
     }
 
     #[ink(storage)]
-    #[derive(Default)]
-    pub struct EPR {
+    pub struct EHR {
         record_count: Mapping<HealthId, AccountId>,
         patient_biodata: Mapping<AccountId, Biodata>,  
         patient_notes: Mapping<AccountId, ClinicalNotes>  
     }
 
-    impl EPR {
+    impl EHR {
         #[ink(constructor)]
         pub fn new() -> Self {
             Self {
@@ -73,8 +38,10 @@ pub mod epr {
             }
         }
 
+        // create_patient should set patient identifier
+
         #[ink(message)]
-        pub fn create_patient(&mut self, identifier: AccountId) {
+        pub fn create_patient(&mut self, token_id: u32, health_record: String) {
             // // Create an instance of the patient_token contract
             // let mut patient_token_instance = ink_env::call::FromAccountId::from_account_id(self.patient_token);
 
@@ -84,7 +51,16 @@ pub mod epr {
             // // Store the health record
             // self.health_records.insert(token_id, health_record);
         }
-        
+
+        #[ink(message)]
+        pub fn update_health_record(&mut self, token_id: u32, health_record: String) {
+            // self.health_records.insert(token_id, health_record);
+        }
+
+        #[ink(message)]
+        pub fn get_health_record(&self, token_id: u32) -> Option<String> {
+            // self.health_records.get(&token_id)
+        }
     }
 
     #[cfg(test)]
