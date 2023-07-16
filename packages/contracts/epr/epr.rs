@@ -2,15 +2,10 @@
 
 #[ink::contract]
 pub mod epr {
-    // use ink::storage::Mapping;
+    use ink::storage::Mapping;
     use ink::prelude::string::String;
     use ink::prelude::vec::Vec;
     // use ink::env;
-
-    use ink::storage::{
-        traits::ManualKey,
-        Mapping,
-    };
 
     use scale::{
         Decode,
@@ -18,6 +13,7 @@ pub mod epr {
     };
 
     pub type HealthId = u32;
+    pub type Hash = String;
 
     #[derive(Default, scale::Decode, scale::Encode)]
     #[cfg_attr(
@@ -32,7 +28,7 @@ pub mod epr {
     )]
     pub struct Biodata {
         name: String,
-        details: String, //Hash
+        details: Hash,
         finalized: bool,
         vector: Vec<u8>,
     }
@@ -50,14 +46,35 @@ pub mod epr {
     )]
     pub struct ClinicalNotes {
         name: String,
-        details: String, //Hash
+        details: Hash,
         finalized: bool,
         vector: Vec<u8>,
+    }
+
+    #[ink(event)]
+    pub struct NewPatient {
+        #[ink(topic)]
+        id: HealthId,
+        #[ink(topic)]
+        identifier: Option<AccountId>
+    }
+
+    // Define an Error enum to handle errors.
+    #[derive(Encode, Decode, Debug, PartialEq, Eq, Copy, Clone)]
+    #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
+    pub enum Error {
+        NotOwner,
+        NotApproved,
+        TokenExists,
+        TokenNotFound,
+        NotAllowed,
+        CannotFetchValue
     }
 
     #[ink(storage)]
     #[derive(Default)]
     pub struct EPR {
+        current_id: HealthId,
         record_count: Mapping<HealthId, AccountId>,
         patient_biodata: Mapping<AccountId, Biodata>,  
         patient_notes: Mapping<AccountId, ClinicalNotes>  
@@ -67,6 +84,7 @@ pub mod epr {
         #[ink(constructor)]
         pub fn new() -> Self {
             Self {
+                current_id: 0,
                 record_count: Default::default(),
                 patient_biodata: Default::default(),
                 patient_notes: Default::default(),
@@ -74,15 +92,25 @@ pub mod epr {
         }
 
         #[ink(message)]
-        pub fn create_patient(&mut self, identifier: AccountId) {
-            // // Create an instance of the patient_token contract
-            // let mut patient_token_instance = ink_env::call::FromAccountId::from_account_id(self.patient_token);
+        pub fn create_patient(&mut self, identifier: AccountId) -> Result<(), Error> {
+            let count = self.current_id + 1;
+            
+            self.current_id = count;
+            self.record_count.insert(&count, &identifier);
+        
+            self.env().emit_event(NewPatient {
+                id: count,
+                identifier: Some(identifier)
+            });
 
-            // // Mint the token
-            // patient_token_instance.mint(token_id);
+            Ok(())
+        }
 
-            // // Store the health record
-            // self.health_records.insert(token_id, health_record);
+        #[ink(message)]
+        pub fn update_biodata(&mut self, identifier: AccountId, biodata: Hash) -> Result<(), Error> {
+            self.patient_biodata.insert(&identifier, &biodata);
+
+            Ok(())
         }
         
     }
