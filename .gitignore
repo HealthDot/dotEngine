@@ -12,5 +12,7 @@ packages/contracts/Cargo.lock
 packages/contracts/patient/Cargo.lock
 packages/contracts/epr/Cargo.lock
 
+packages/ingestion-engine/target/
+
 node_modules
 
