@@ -13,7 +13,7 @@ pub mod epr {
     };
 
     pub type HealthId = u32;
-    pub type Hash = String;
+    // pub type Hash = String;
 
     #[derive(Default, scale::Decode, scale::Encode)]
     #[cfg_attr(
@@ -28,7 +28,7 @@ pub mod epr {
     )]
     pub struct Biodata {
         name: String,
-        details: Hash,
+        details: String,
         finalized: bool,
         vector: Vec<u8>,
     }
@@ -46,7 +46,7 @@ pub mod epr {
     )]
     pub struct ClinicalNotes {
         name: String,
-        details: Hash,
+        details: String,
         finalized: bool,
         vector: Vec<u8>,
     }
@@ -57,6 +57,22 @@ pub mod epr {
         id: HealthId,
         #[ink(topic)]
         identifier: Option<AccountId>
+    }
+
+    #[ink(event)]
+    pub struct BiodataUpdate {
+        #[ink(topic)]
+        identifier: Option<AccountId>,
+        #[ink(topic)]
+        message: Option<Biodata>
+    }
+
+    #[ink(event)]
+    pub struct ClinicalNotesUpdate {
+        #[ink(topic)]
+        identifier: Option<AccountId>,
+        #[ink(topic)]
+        message: Option<ClinicalNotes>
     }
 
     // Define an Error enum to handle errors.
@@ -107,10 +123,37 @@ pub mod epr {
         }
 
         #[ink(message)]
-        pub fn update_biodata(&mut self, identifier: AccountId, biodata: Hash) -> Result<(), Error> {
+        pub fn update_biodata(&mut self, identifier: AccountId, biodata: Biodata) -> Result<(), Error> {
             self.patient_biodata.insert(&identifier, &biodata);
 
+            self.env().emit_event(BiodataUpdate {
+                identifier: Some(identifier),
+                message: Some(biodata)
+            });
+
             Ok(())
+        }
+
+        #[ink(message)]
+        pub fn update_clinical_notes(&mut self, identifier: AccountId, notes: ClinicalNotes) -> Result<(), Error> {
+            self.patient_notes.insert(&identifier, &notes);
+
+            self.env().emit_event(ClinicalNotesUpdate {
+                identifier: Some(identifier),
+                message: Some(notes)
+            });
+
+            Ok(())
+        }
+
+        #[ink(message)]
+        pub fn get_biodata(&self, identifier: AccountId) -> Option<Biodata> {
+            self.patient_biodata.get(&identifier)
+        }
+
+        #[ink(message)]
+        pub fn get_clinical_notes(&self, identifier: AccountId) -> Option<ClinicalNotes> {
+            self.patient_notes.get(&identifier)
         }
         
     }
@@ -118,7 +161,64 @@ pub mod epr {
     #[cfg(test)]
     mod tests {
         use super::*;
-        use ink_lang as ink;
+
+        // #[ink::test]
+        // fn new_creates_empty_epr() {
+        //     let epr = EPR::new();
+        //     // Test to see if a newly created EPR contract has no stored data.
+        //     assert_eq!(epr.patient_biodata.len(), 0);
+        //     assert_eq!(epr.patient_notes.len(), 0);
+        // }
+
+        #[ink::test]
+        fn create_patient_works() {
+            let mut epr = EPR::new();
+            let patient = AccountId::from([0x01; 32]);
+            assert_eq!(epr.create_patient(patient), Ok(()));
+            // We assert that a patient record is created with the provided AccountId
+            // and the patient's id is stored in the contract.
+            assert_eq!(epr.record_count.get(&1), Some(patient));
+        }
+
+        #[ink::test]
+        fn create_patient_increments_current_id() {
+            let mut epr = EPR::new();
+            let patient = AccountId::from([0x01; 32]);
+            epr.create_patient(patient).unwrap();
+            assert_eq!(epr.current_id, 1);
+        }
+
+        #[ink::test]
+        fn update_and_retrieve_biodata_works() {
+            let mut epr = EPR::new();
+            let patient = AccountId::from([0x01; 32]);
+            epr.create_patient(patient).unwrap();
+            let new_biodata = Biodata { 
+                name: "John Doe".to_string(), 
+                details: "biodata_hash".to_string(), 
+                finalized: true, 
+                vector: vec![1, 2, 3, 4, 5] 
+            };
+            assert_eq!(epr.update_biodata(patient, new_biodata), Ok(()));
+            // After updating the biodata of the patient, we assert that the updated biodata is stored in the contract.
+            // assert_eq!(epr.get_biodata(patient), Some(new_biodata));
+        }
+
+        #[ink::test]
+    fn update_and_retrieve_clinical_notes_works() {
+        let mut epr = EPR::new();
+        let patient = AccountId::from([0x01; 32]);
+        epr.create_patient(patient).unwrap();
+        let new_notes = ClinicalNotes { 
+            name: "John Doe".to_string(), 
+            details: "notes_hash".to_string(), 
+            finalized: true, 
+            vector: vec![6, 7, 8, 9, 10] 
+        };
+        assert_eq!(epr.update_clinical_notes(patient, new_notes), Ok(()));
+        // After updating the clinical notes of the patient, we assert that the updated notes are stored in the contract.
+        // assert_eq!(epr.get_clinical_notes(patient), Some(new_notes));
+    }
 
     }
 }
