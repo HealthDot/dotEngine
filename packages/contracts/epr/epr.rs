@@ -3,7 +3,7 @@
 #[ink::contract]
 pub mod epr {
     use ink::storage::Mapping;
-    use ink_env;
+    use ink::env;
 
     #[ink(storage)]
     pub struct EHR {
