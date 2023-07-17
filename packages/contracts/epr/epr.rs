@@ -8,6 +8,7 @@ pub mod epr {
     use ink::storage::Mapping;
     use ink::prelude::string::String;
     use ink::prelude::vec::Vec;
+    use patient::Patient;
 
     // We import the Encode and Decode traits from the scale codec.
     use scale::{
@@ -17,7 +18,8 @@ pub mod epr {
 
     // Define a type alias for HealthId to enhance readability.
     pub type HealthId = u32;
-
+    pub type TokenId = u32;
+    
     // The Biodata struct is used to represent the biodata of a patient.
     // It contains the patient's name, details, a boolean indicating whether the data is finalized or not, and a vector of bytes.
     #[derive(Default, scale::Decode, scale::Encode)]
@@ -107,20 +109,33 @@ pub mod epr {
         // The patient_biodata mapping stores the biodata of each patient.
         patient_biodata: Mapping<AccountId, Biodata>,  
         // The patient_notes mapping stores the clinical notes of each patient.
-        patient_notes: Mapping<AccountId, ClinicalNotes>  
+        patient_notes: Mapping<AccountId, ClinicalNotes>,
+        patient: Patient
     }
 
     // Define the behavior of the EPR contract.
     impl EPR {
         // The constructor initializes an EPR contract with no data.
         #[ink(constructor)]
-        pub fn new() -> Self {
+        pub fn new(patient_code_hash: Hash) -> Self {
+            let patient = Patient::new(String::from("HealthDot"), String::from("HDOT"))
+                .code_hash(patient_code_hash)
+                .endowment(0)
+                .salt_bytes([0xDE, 0xAD, 0xBE, 0xEF])
+                .instantiate();
+
             Self {
                 current_id: 0,
                 record_count: Default::default(),
                 patient_biodata: Default::default(),
                 patient_notes: Default::default(),
+                patient
             }
+        }
+
+        #[ink(message)]
+        pub fn test_cross_call(&mut self) -> bool {
+            self.patient.name();
         }
 
         // The create_patient function creates a new patient record and associates it with an account id.

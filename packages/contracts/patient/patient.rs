@@ -1,11 +1,14 @@
 // Required for environments that don't have a standard library (like a Wasm contract).
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
+pub use self::patient::Patient;
+
 // We're importing the ink contract language.
 #[ink::contract]
 pub mod patient {
     // This trait provides an abstraction for working with storage data structures in ink.
     use ink::storage::Mapping;
+    // pub use self::patient::Patient;
 
     // Importing necessary traits for encoding and decoding.
     use scale::{
@@ -13,11 +16,14 @@ pub mod patient {
         Encode,
     };
 
+    use scale::alloc::string::String;
+
     // Define our own types for better readability.
     // TokenId represents a unique identifier for each token.
     pub type TokenId = u32;
     // Approved represents the approval status of a token.
     pub type Approved = bool;
+
 
 
     // Annotate the struct as the ink contract's storage.
