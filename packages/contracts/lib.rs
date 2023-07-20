@@ -3,7 +3,7 @@
 
 // This attribute specifies that the following module is an ink! smart contract.
 #[ink::contract]
-pub mod epr {
+mod epr {
     // Use necessary items from the ink crate.
     use ink::storage::Mapping;
     use ink::prelude::string::String;

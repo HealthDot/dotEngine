@@ -5,7 +5,7 @@ pub use self::patient::Patient;
 
 // We're importing the ink contract language.
 #[ink::contract]
-pub mod patient {
+mod patient {
     // This trait provides an abstraction for working with storage data structures in ink.
     use ink::storage::Mapping;
     // pub use self::patient::Patient;
