@@ -9,6 +9,7 @@
 
 ##   HealthDOT Initiative: A Patient-Centric, Decentralized Health Data Management System Using Dynamic NFTs
 (Build for the Polkadot Hackathon: APAC Edition 2023)
+(Fully open source)
 
 Introducing the flagship product of [HealthDot DAO](https://health-dot.netlify.app). HealthDot is a novel healthcare solution.
 
@@ -20,7 +21,7 @@ Introducing the flagship product of [HealthDot DAO](https://health-dot.netlify.a
 2. Electronic Patient Record Contract -
 3. Marketplace Contract - 
 4. Frontend Address - [health-dot.netlify.app](https://health-dot.netlify.app)
-5. Ink Dapp Address - []()
+5. Ink Dapp Address - [healthdot-athon.netlify.app/](https://healthdot-athon.netlify.app/)
 
 ****
 
@@ -48,3 +49,7 @@ yarn test:contract
 
 ## Code Safety
 At HealthDot, we believe in writing safe, reliable, and efficient code. Therefore, we have made it a point to include `ink!` tests throughout our codebase. This ensures our code is rigorously tested, reducing potential errors and improving the overall quality of our systems.
+
+
+@Akanimoh Osutuk.
+Thanks.
