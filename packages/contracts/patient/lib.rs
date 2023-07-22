@@ -1,14 +1,16 @@
 // Required for environments that don't have a standard library (like a Wasm contract).
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
-pub use self::patient::Patient;
+pub use self::patient::{
+    Patient,
+    PatientRef
+};
 
 // We're importing the ink contract language.
 #[ink::contract]
 mod patient {
     // This trait provides an abstraction for working with storage data structures in ink.
     use ink::storage::Mapping;
-    // pub use self::patient::Patient;
 
     // Importing necessary traits for encoding and decoding.
     use scale::{
@@ -102,7 +104,7 @@ mod patient {
     // The implementation of the contract.
     impl Patient {
         // Constructor function for the contract. It takes in the token name and symbol.
-        #[ink(constructor)]
+        #[ink(constructor, payable)]
         pub fn new(token_name: String, token_symbol: String) -> Self {
             Self {
                 token_name,
@@ -236,7 +238,7 @@ mod patient {
         /// After transferring the token, it emits a Transfer event.
         /// The function will return Ok if the operation was successful, or an error if it wasn't.
         fn transfer_token_from(&mut self, from: &AccountId, to: &AccountId, id: TokenId) -> Result<(), Error> {
-            let msg_sender: AccountId = self.env().caller();
+            // let msg_sender: AccountId = self.env().caller();
             
             if !self.exists(id) {
                 return Err(Error::TokenNotFound)

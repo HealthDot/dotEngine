@@ -5,15 +5,15 @@ authors = ["[Akanimoh_Osutuk] <[your_email]>"]
 edition = "2021"
 
 [dependencies]
-ink = { version = "4.2.0", default-features = false }
+ink = { version = "4.2.1", default-features = false }
 
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
 scale-info = { version = "2.6", default-features = false, features = ["derive"], optional = true }
 
-patient = { path = "./patient", default-features = false, features = ["ink-as-dependency"] }
+patient = { path = "patient", default-features = false, features = ["ink-as-dependency"] }
 
 [dev-dependencies]
-ink_e2e = "4.2.0"
+ink_e2e = "4.2.1"
 
 [lib]
 path = "lib.rs"
@@ -28,3 +28,8 @@ std = [
 ]
 ink-as-dependency = []
 e2e-tests = []
+
+[workspace]
+members = [
+    "patient"
+]
