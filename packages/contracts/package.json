@@ -4,9 +4,15 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "compile": "cd patient && cargo compile --verbose",
-    "build": "cd patient && cargo build --verbose",
-    "test": "cd patient && cargo test"
+    "check": "yarn check:patient && yarn check:epr",
+    "check:patient":"cd patient && cargo check",
+    "check:epr":"cargo check",
+    "build": "yarn build:patient && yarn build:epr",
+    "build:patient": "cd patient && cargo build",
+    "build:epr": "cargo build",
+    "test": "yarn test:patient && yarn test:epr",
+    "test:patient": "cd patient && cargo test",
+    "test:epr": "cargo test"
   },
   "devDependencies": {
     "npm-run-all": "^4.1.5"

@@ -40,7 +40,11 @@ Introducing the flagship product of [HealthDot DAO](https://health-dot.netlify.a
 git clone https://github.com/HealthDot/dotEngine
 cd dotEngine/
 yarn
-yarn build:all # builds the smart contracts and user interface
-yarn test:all
+yarn check:contract # builds the smart contracts and user interface
+yarn build:contract
+yarn test:contract
 
 ```
+
+## Code Safety
+At HealthDot, we believe in writing safe, reliable, and efficient code. Therefore, we have made it a point to include `ink!` tests throughout our codebase. This ensures our code is rigorously tested, reducing potential errors and improving the overall quality of our systems.
