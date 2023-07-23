@@ -4,10 +4,9 @@
 
 [![Build and Test](https://github.com/HealthDot/dotEngine/actions/workflows/Build-and-Test.yml/badge.svg)](https://github.com/HealthDot/dotEngine/actions/workflows/Build-and-Test.yml)
 
-0x340e21f334758e6b42c83e6d587942dc34cdb2796eacf43573b3a4d1b412baaa
 ****
 
-##   HealthDOT Initiative: A Patient-Centric, Decentralized Health Data Management System Using Dynamic NFTs
+##   HealthDOT Initiative: A Patient-Centric, Decentralized Health Data Management System Using Dynamic NFTs built with Ink.
 (Build for the Polkadot Hackathon: APAC Edition 2023)
 (Fully open source)
 
@@ -18,7 +17,7 @@ Introducing the flagship product of [HealthDot DAO](https://health-dot.netlify.a
 #### Important Links/Addresses
 1. HealthDOT whitepaper/wiki (Important) - [https://github.com/HealthDot/dotEngine/wiki](https://github.com/HealthDot/dotEngine/wiki)
 1. Patient DOT Dynamic NFT Contract - [Xbh6NN8Vbgrw1erNxjBTjRzQU33kUTBoTJJgs1MVspCsPdU](https://shibuya.subscan.io/account/Xbh6NN8Vbgrw1erNxjBTjRzQU33kUTBoTJJgs1MVspCsPdU)
-2. Electronic Patient Record Contract -
+2. Electronic Patient Record Contract - [0xe037ef052bb3b808f3eed8b88712ca08e0e89b5441c9916e76d8b0aaa22c0d92](https://contracts-ui.substrate.io/instantiate/0xe037ef052bb3b808f3eed8b88712ca08e0e89b5441c9916e76d8b0aaa22c0d92)
 3. Marketplace Contract - 
 4. Frontend Address - [health-dot.netlify.app](https://health-dot.netlify.app)
 5. Ink Dapp Address - [healthdot-athon.netlify.app/](https://healthdot-athon.netlify.app/)
